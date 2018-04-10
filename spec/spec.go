@@ -7,7 +7,10 @@ import (
 )
 
 const (
-	MetadataNameReplacer = `(.metadata.name | capture(\"(?<a>%s)(?<b>.*)\")) as \$names | (.metadata | select(.name == \"\(\$names.a + \$names.b)\") | .name) |= \"%s\(\$names.b)\"`
+	MetadataNameReplacer                    = `(.metadata.name | capture(\"(?<a>%s)(?<b>.*)\")) as \$names | (.metadata | select(.name == \"\(\$names.a + \$names.b)\") | .name) |= \"%s\(\$names.b)\"`
+	MetadataLabelsReplacer                  = `(.metadata.labels | select(.%s == \"%s\") | .%s) |= \"%s\"`
+	SpecTemplateMetadataLabelsReplacer      = `(.spec.template.metadata.labels | select(.%s == \"%s\") | .%s) |= \"%s\"`
+	SpecTemplateSpecContainersImageReplacer = `(.spec.template.spec.containers[] | select(.image == \"%s:%s\") | .image) |= \"%s:%s\"`
 )
 
 type SpecGroup struct {
@@ -25,6 +28,18 @@ func (specGroup *SpecGroup) Activate() error {
 
 func NewMetadataNameReplacer(changeString, replacementValue string) string {
 	return fmt.Sprintf(MetadataNameReplacer, changeString, replacementValue)
+}
+
+func NewMetadataLabelsReplacer(changeString, replacementValue, labelKey string) string {
+	return fmt.Sprintf(MetadataLabelsReplacer, labelKey, changeString, labelKey, replacementValue)
+}
+
+func NewSpecTemplateMetadataLabelsReplacer(changeString, replacementValue, labelKey string) string {
+	return fmt.Sprintf(SpecTemplateMetadataLabelsReplacer, labelKey, changeString, labelKey, replacementValue)
+}
+
+func NewSpecTemplateSpecContainersImageReplacer(changeString, replacementValue, dockerRepo string) string {
+	return fmt.Sprintf(SpecTemplateSpecContainersImageReplacer, dockerRepo, changeString, dockerRepo, replacementValue)
 }
 
 type SpecHandler interface {

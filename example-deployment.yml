@@ -1,0 +1,28 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: CHANGEME
+  namespace: default
+  labels:
+    app: CHANGEME
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 2
+  template:
+    metadata:
+      labels:
+        app: CHANGEME
+    spec:
+      restartPolicy: Always
+      containers:
+      - name: sleeper
+        image: my-account/my-repo:CHANGEME
+        imagePullPolicy: IfNotPresent
+        command:
+        - sleep
+        args:
+        - inifinity

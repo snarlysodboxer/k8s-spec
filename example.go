@@ -11,14 +11,17 @@ func main() {
 
 	// Setup Spec
 	deploymentSpec := &spec.Spec{}
-	deploymentSpec.ReadTemplateFile("./deployment.yml")
+	deploymentSpec.ReadTemplateFile("./example-deployment.yml")
 	// // Or create a template string and add it
-	// template := []byte("")
-	// deploymentSpec.SetTemplateString(template)
-	// Built-in Replacer for `.metadata.name`
+	// deploymentSpec.SetTemplateString(myTemplateString)
+
+	// Built-in Replacers
 	deploymentSpec.AddReplacer(spec.NewMetadataNameReplacer("CHANGEME", "my-app"))
-	// Custom Replacer
-	deploymentSpec.AddReplacer(`(.metadata.labels | select(.app == \"CHANGEME\") | .app) |= \"my-app\"`)
+	deploymentSpec.AddReplacer(spec.NewMetadataLabelsReplacer("CHANGEME", "my-app", "app"))
+	deploymentSpec.AddReplacer(spec.NewSpecTemplateMetadataLabelsReplacer("CHANGEME", "my-app", "app"))
+	deploymentSpec.AddReplacer(spec.NewSpecTemplateSpecContainersImageReplacer("CHANGEME", "0.0.1", "my-account/my-repo"))
+	// // Custom Replacer
+	// deploymentSpec.AddReplacer(`(.metadata.labels | select(.app == \"CHANGEME\") | .app) |= \"my-app\"`)
 
 	// Render Spec
 	rendered, err := deploymentSpec.Render()
@@ -31,8 +34,8 @@ func main() {
 	specGroup.AddSpec(deploymentSpec)
 
 	// Activate SpecGroup
-	// err = specGroup.Activate()
-	// if err != nil {
-	//     panic(err)
-	// }
+	err = specGroup.Activate()
+	if err != nil {
+		panic(err)
+	}
 }
