@@ -21,11 +21,6 @@ func (specGroup *SpecGroup) AddSpec(spec SpecHandler) {
 	specGroup.specs = append(specGroup.specs, spec)
 }
 
-func (specGroup *SpecGroup) Activate() error {
-	fmt.Println("Activate placeholder")
-	return nil
-}
-
 func NewMetadataNameReplacer(changeString, replacementValue string) string {
 	return fmt.Sprintf(MetadataNameReplacer, changeString, replacementValue)
 }

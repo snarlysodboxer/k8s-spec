@@ -6,6 +6,15 @@ import (
 	"github.com/snarlysodboxer/k8s-spec/spec"
 )
 
+type CustomKubectl struct {
+	kctl.Kubectl
+}
+
+func (customKubectl *CustomKubectl) Apply(specGroup *spec.SpecGroup) error {
+	fmt.Println("Custom Apply")
+	return nil
+}
+
 func main() {
 	// Create SpecGroup
 	specGroup := &spec.SpecGroup{}
@@ -13,16 +22,9 @@ func main() {
 	// Setup Spec
 	deploymentSpec := &spec.Spec{}
 	deploymentSpec.ReadTemplateFile("./example-deployment.yml")
-	// // Or create a template string and add it
-	// deploymentSpec.SetTemplateString([]byte("my spec"))
 
 	// Add Built-in Replacers
 	deploymentSpec.AddReplacer(spec.NewMetadataNameReplacer("CHANGEME", "my-app"))
-	deploymentSpec.AddReplacer(spec.NewMetadataLabelsReplacer("CHANGEME", "my-app", "app"))
-	deploymentSpec.AddReplacer(spec.NewSpecTemplateMetadataLabelsReplacer("CHANGEME", "my-app", "app"))
-	deploymentSpec.AddReplacer(spec.NewSpecTemplateSpecContainersImageReplacer("CHANGEME", "0.0.1", "my-account/my-repo"))
-	// // Custom Replacer
-	// deploymentSpec.AddReplacer(`(.metadata.labels | select(.app == \"CHANGEME\") | .app) |= \"my-app\"`)
 
 	// Render Spec
 	rendered, err := deploymentSpec.Render()
@@ -35,8 +37,8 @@ func main() {
 	specGroup.AddSpec(deploymentSpec)
 
 	// Apply SpecGroup to k8s
-	kubectl := &kctl.Kubectl{}
-	err = kubectl.Apply(specGroup)
+	customKubectl := &CustomKubectl{kctl.Kubectl{}}
+	err = customKubectl.Apply(specGroup)
 	if err != nil {
 		panic(err)
 	}
