@@ -10,7 +10,7 @@ func main() {
 	// Create SpecGroup
 	specGroup := &spec.SpecGroup{}
 
-	// Setup Spec
+	// Setup Spec for Deployment
 	deploymentSpec := &spec.Spec{}
 	deploymentSpec.ReadTemplateFile("./example-deployment.yml")
 	// // Or create a template string and add it
@@ -34,9 +34,27 @@ func main() {
 	// Add Spec to SpecGroup
 	specGroup.AddSpec(deploymentSpec)
 
+	// Setup Spec for Service
+	serviceSpec := &spec.Spec{}
+	serviceSpec.ReadTemplateFile("./example-service.yml")
+	serviceSpec.AddReplacer(spec.NewMetadataNameReplacer("CHANGEME", "my-app"))
+	serviceSpec.AddReplacer(spec.NewMetadataLabelsReplacer("CHANGEME", "my-app", "app"))
+	serviceSpec.AddReplacer(spec.NewSpecSelectorReplacer("CHANGEME", "my-app", "app"))
+	rendered, err = serviceSpec.Render()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Rendered the following spec:\n%s\n", rendered)
+	specGroup.AddSpec(serviceSpec)
+
 	// Apply SpecGroup to k8s
 	kubectl := &kctl.Kubectl{}
 	err = kubectl.Apply(specGroup)
+	if err != nil {
+		panic(err)
+	}
+
+	err = kubectl.Delete(specGroup)
 	if err != nil {
 		panic(err)
 	}

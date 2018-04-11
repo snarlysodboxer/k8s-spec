@@ -25,4 +25,4 @@ spec:
         command:
         - sleep
         args:
-        - inifinity
+        - '50000'

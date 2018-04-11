@@ -11,14 +11,19 @@ const (
 	MetadataLabelsReplacer                  = `(.metadata.labels | select(.%s == \"%s\") | .%s) |= \"%s\"`
 	SpecTemplateMetadataLabelsReplacer      = `(.spec.template.metadata.labels | select(.%s == \"%s\") | .%s) |= \"%s\"`
 	SpecTemplateSpecContainersImageReplacer = `(.spec.template.spec.containers[] | select(.image == \"%s:%s\") | .image) |= \"%s:%s\"`
+	SpecSelector                            = `(.spec.selector | select(.%s == \"%s\") | .%s) |= \"%s\"`
 )
 
 type SpecGroup struct {
-	specs []SpecHandler
+	Specs []*Spec
 }
 
-func (specGroup *SpecGroup) AddSpec(spec SpecHandler) {
-	specGroup.specs = append(specGroup.specs, spec)
+func (specGroup *SpecGroup) AddSpec(specHandler SpecHandler) {
+	spec, ok := specHandler.(*Spec)
+	if !ok {
+		panic("Couldn't convert SpecHandler to Spec")
+	}
+	specGroup.Specs = append(specGroup.Specs, spec)
 }
 
 func NewMetadataNameReplacer(changeString, replacementValue string) string {
@@ -35,6 +40,10 @@ func NewSpecTemplateMetadataLabelsReplacer(changeString, replacementValue, label
 
 func NewSpecTemplateSpecContainersImageReplacer(changeString, replacementValue, dockerRepo string) string {
 	return fmt.Sprintf(SpecTemplateSpecContainersImageReplacer, dockerRepo, changeString, dockerRepo, replacementValue)
+}
+
+func NewSpecSelectorReplacer(changeString, replacementValue, labelKey string) string {
+	return fmt.Sprintf(SpecSelector, labelKey, changeString, labelKey, replacementValue)
 }
 
 type SpecHandler interface {
