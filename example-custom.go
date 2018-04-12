@@ -35,9 +35,10 @@ func main() {
 
 	// Setup Spec
 	deploymentSpec := &CustomSpec{spec.Spec{}}
+	specGroup.AddSpec(deploymentSpec)
 	deploymentSpec.ReadTemplateFile("./example-deployment.yml")
 
-	// Add Built-in Replacer
+	// Built-in Replacer
 	deploymentSpec.AddReplacer(spec.NewMetadataNameReplacer("CHANGEME", "my-app"))
 
 	// Render Spec
@@ -46,9 +47,6 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("Rendered the following spec:\n\n%s\n", rendered)
-
-	// Add Spec to SpecGroup
-	specGroup.AddSpec(deploymentSpec)
 
 	// Apply SpecGroup to k8s
 	customKubectl := &CustomKubectl{kctl.Kubectl{}}

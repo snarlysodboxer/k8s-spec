@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os/exec"
+	"strings"
 )
 
 const (
@@ -11,19 +12,39 @@ const (
 	MetadataLabelsReplacer                  = `(.metadata.labels | select(.%s == \"%s\") | .%s) |= \"%s\"`
 	SpecTemplateMetadataLabelsReplacer      = `(.spec.template.metadata.labels | select(.%s == \"%s\") | .%s) |= \"%s\"`
 	SpecTemplateSpecContainersImageReplacer = `(.spec.template.spec.containers[] | select(.image == \"%s:%s\") | .image) |= \"%s:%s\"`
-	SpecSelector                            = `(.spec.selector | select(.%s == \"%s\") | .%s) |= \"%s\"`
+	SpecSelectorReplacer                    = `(.spec.selector | select(.%s == \"%s\") | .%s) |= \"%s\"`
+	CommonLabelAdder                        = `.metadata.labels = (.metadata.labels + {\"%s\": \"%s\"})`
 )
 
 type SpecGroup struct {
-	Specs []*Spec
+	Specs            []*Spec
+	commonLabelKey   string
+	commonLabelValue string
 }
 
 func (specGroup *SpecGroup) AddSpec(specHandler SpecHandler) {
-	spec, ok := specHandler.(*Spec)
-	if !ok {
-		panic("Couldn't convert SpecHandler to Spec")
+	specGroup.Specs = append(specGroup.Specs, specHandler.Get())
+}
+
+func (specGroup *SpecGroup) Render() (string, error) {
+	allRendered := []string{}
+	for _, spec := range specGroup.Specs {
+		if specGroup.commonLabelKey != "" && specGroup.commonLabelValue != "" {
+			spec.AddReplacer(fmt.Sprintf(CommonLabelAdder, specGroup.commonLabelKey, specGroup.commonLabelValue))
+		}
+		rendered, err := spec.Render()
+		if err != nil {
+			panic(err)
+		}
+		allRendered = append(allRendered, rendered)
 	}
-	specGroup.Specs = append(specGroup.Specs, spec)
+	ren := strings.Join(allRendered, "\n---\n\n")
+	return string(ren), nil
+}
+
+func (specGroup *SpecGroup) SetCommonLabel(key, value string) {
+	specGroup.commonLabelKey = key
+	specGroup.commonLabelValue = value
 }
 
 func NewMetadataNameReplacer(changeString, replacementValue string) string {
@@ -43,11 +64,12 @@ func NewSpecTemplateSpecContainersImageReplacer(changeString, replacementValue, 
 }
 
 func NewSpecSelectorReplacer(changeString, replacementValue, labelKey string) string {
-	return fmt.Sprintf(SpecSelector, labelKey, changeString, labelKey, replacementValue)
+	return fmt.Sprintf(SpecSelectorReplacer, labelKey, changeString, labelKey, replacementValue)
 }
 
 type SpecHandler interface {
 	Render() (string, error)
+	Get() *Spec
 }
 
 type Spec struct {
@@ -55,6 +77,10 @@ type Spec struct {
 	filePath  string
 	template  []byte
 	replacers []string
+}
+
+func (spec *Spec) Get() *Spec {
+	return spec
 }
 
 func (spec *Spec) ReadTemplateFile(filePath string) {
