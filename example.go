@@ -21,9 +21,9 @@ func main() {
 	// deploymentSpec.SetTemplateString([]byte("my spec"))
 	// Built-in Replacers
 	deploymentSpec.AddReplacer(spec.NewMetadataNameReplacer("CHANGEME", "my-app"))
-	deploymentSpec.AddReplacer(spec.NewMetadataLabelsReplacer("CHANGEME", "my-app", "app"))
-	deploymentSpec.AddReplacer(spec.NewSpecTemplateMetadataLabelsReplacer("CHANGEME", "my-app", "app"))
-	deploymentSpec.AddReplacer(spec.NewSpecTemplateSpecContainersImageReplacer("CHANGEME", "0.0.1", "my-account/my-repo"))
+	deploymentSpec.AddReplacer(spec.NewMetadataLabelsReplacer("CHANGEME", "app", "my-app"))
+	deploymentSpec.AddReplacer(spec.NewSpecTemplateMetadataLabelsReplacer("CHANGEME", "app", "my-app"))
+	deploymentSpec.AddReplacer(spec.NewSpecTemplateSpecContainersImageReplacer("CHANGEME", "my-account/my-repo", "0.0.1"))
 	// Custom Replacer
 	deploymentSpec.AddReplacer(`.spec.replicas = 2`)
 
@@ -32,8 +32,8 @@ func main() {
 	specGroup.AddSpec(serviceSpec)
 	serviceSpec.ReadTemplateFile("./example-service.yml")
 	serviceSpec.AddReplacer(spec.NewMetadataNameReplacer("CHANGEME", "my-app"))
-	serviceSpec.AddReplacer(spec.NewMetadataLabelsReplacer("CHANGEME", "my-app", "app"))
-	serviceSpec.AddReplacer(spec.NewSpecSelectorReplacer("CHANGEME", "my-app", "app"))
+	serviceSpec.AddReplacer(spec.NewMetadataLabelsReplacer("CHANGEME", "app", "my-app"))
+	serviceSpec.AddReplacer(spec.NewSpecSelectorReplacer("CHANGEME", "app", "my-app"))
 
 	// Render each Spec
 	rendered, err := specGroup.Render()
@@ -49,7 +49,17 @@ func main() {
 		panic(err)
 	}
 
-	// Delete SpecGroup from Kuberentes
+	// Get objects from Kubernetes
+	objects, err := kubectl.GetUsingLabel("deployment,pod,svc", "app", "my-app")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Found the following objects:")
+	for kind, name := range objects {
+		fmt.Printf("\t%-26s%s\n", kind, name)
+	}
+
+	// Delete SpecGroup from Kubernetes
 	err = kubectl.Delete(specGroup)
 	if err != nil {
 		panic(err)

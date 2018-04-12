@@ -51,19 +51,19 @@ func NewMetadataNameReplacer(changeString, replacementValue string) string {
 	return fmt.Sprintf(MetadataNameReplacer, changeString, replacementValue)
 }
 
-func NewMetadataLabelsReplacer(changeString, replacementValue, labelKey string) string {
+func NewMetadataLabelsReplacer(changeString, labelKey, replacementValue string) string {
 	return fmt.Sprintf(MetadataLabelsReplacer, labelKey, changeString, labelKey, replacementValue)
 }
 
-func NewSpecTemplateMetadataLabelsReplacer(changeString, replacementValue, labelKey string) string {
+func NewSpecTemplateMetadataLabelsReplacer(changeString, labelKey, replacementValue string) string {
 	return fmt.Sprintf(SpecTemplateMetadataLabelsReplacer, labelKey, changeString, labelKey, replacementValue)
 }
 
-func NewSpecTemplateSpecContainersImageReplacer(changeString, replacementValue, dockerRepo string) string {
+func NewSpecTemplateSpecContainersImageReplacer(changeString, dockerRepo, replacementValue string) string {
 	return fmt.Sprintf(SpecTemplateSpecContainersImageReplacer, dockerRepo, changeString, dockerRepo, replacementValue)
 }
 
-func NewSpecSelectorReplacer(changeString, replacementValue, labelKey string) string {
+func NewSpecSelectorReplacer(changeString, labelKey, replacementValue string) string {
 	return fmt.Sprintf(SpecSelectorReplacer, labelKey, changeString, labelKey, replacementValue)
 }
 
