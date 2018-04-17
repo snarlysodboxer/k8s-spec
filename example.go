@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/snarlysodboxer/k8s-spec/kctl"
+	"github.com/snarlysodboxer/k8s-spec/engine/kubectl"
 	"github.com/snarlysodboxer/k8s-spec/spec"
 )
 
@@ -43,14 +43,14 @@ func main() {
 	fmt.Printf("Rendered the following specs:\n\n%s\n", rendered)
 
 	// Apply SpecGroup to Kuberentes
-	kubectl := &kctl.Kubectl{}
-	err = kubectl.Apply(specGroup)
+	engine := kubectl.NewEngine()
+	err = engine.Apply(specGroup)
 	if err != nil {
 		panic(err)
 	}
 
 	// Get objects from Kubernetes
-	objects, err := kubectl.GetUsingLabel("deployment,pod,svc", "app", "my-app")
+	objects, err := engine.GetUsingLabel("deployment,pod,svc", "app", "my-app")
 	if err != nil {
 		panic(err)
 	}
@@ -60,7 +60,7 @@ func main() {
 	}
 
 	// Delete SpecGroup from Kubernetes
-	err = kubectl.Delete(specGroup)
+	err = engine.Delete(specGroup)
 	if err != nil {
 		panic(err)
 	}

@@ -1,4 +1,4 @@
-package kctl
+package main
 
 import (
 	"fmt"
@@ -17,14 +17,12 @@ EOF`
 	KubectlGetUsingLabel = `kubectl get %s -l %s=%s --ignore-not-found -o jsonpath="{range .items[*]}{.kind} {.metadata.name}{\"\n\"}{end}"`
 )
 
-type KubectlHandler interface {
-	Apply(spec.SpecGroup) error
+var Engine KubectlEngine
+
+type KubectlEngine struct {
 }
 
-type Kubectl struct {
-}
-
-func (kubectl *Kubectl) Apply(specGroup *spec.SpecGroup) error {
+func (engine *KubectlEngine) Apply(specGroup *spec.SpecGroup) error {
 	for _, spec := range specGroup.Specs {
 		output, err := exec.Command(
 			"sh", "-c", fmt.Sprintf(KubectlApply, spec.Rendered),
@@ -38,7 +36,7 @@ func (kubectl *Kubectl) Apply(specGroup *spec.SpecGroup) error {
 	return nil
 }
 
-func (kubectl *Kubectl) GetUsingLabel(kind, labelKey, labelValue string) (map[string]string, error) {
+func (engine *KubectlEngine) GetUsingLabel(kind, labelKey, labelValue string) (map[string]string, error) {
 	output, err := exec.Command(
 		"sh", "-c", fmt.Sprintf(KubectlGetUsingLabel, kind, labelKey, labelValue),
 	).CombinedOutput()
@@ -57,7 +55,7 @@ func (kubectl *Kubectl) GetUsingLabel(kind, labelKey, labelValue string) (map[st
 	return objects, nil
 }
 
-func (kubectl *Kubectl) Delete(specGroup *spec.SpecGroup) error {
+func (engine *KubectlEngine) Delete(specGroup *spec.SpecGroup) error {
 	for _, spec := range specGroup.Specs {
 		output, err := exec.Command(
 			"sh", "-c", fmt.Sprintf(KubectlDelete, spec.Rendered),

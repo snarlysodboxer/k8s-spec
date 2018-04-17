@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/snarlysodboxer/k8s-spec/kctl"
+	"github.com/snarlysodboxer/k8s-spec/engine/kubectl"
 	"github.com/snarlysodboxer/k8s-spec/spec"
 )
 
 type CustomKubectl struct {
-	kctl.Kubectl
+	kubectl.Engine
 }
 
 func (customKubectl *CustomKubectl) Apply(specGroup *spec.SpecGroup) error {
@@ -49,7 +49,7 @@ func main() {
 	fmt.Printf("Rendered the following spec:\n\n%s\n", rendered)
 
 	// Apply SpecGroup to k8s
-	customKubectl := &CustomKubectl{kctl.Kubectl{}}
+	customKubectl := &CustomKubectl{kubectl.Engine{}}
 	err = customKubectl.Apply(specGroup)
 	if err != nil {
 		panic(err)
